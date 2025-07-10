@@ -1,0 +1,6 @@
+create table users(name varchar(20),gender varchar(10),address varchar(40),city varchar(20),mno varchar(20),emailid varchar(40),username varchar(20),password varchar(20));
+create table customers(yname varchar(20),fname varchar(20),rno varchar(5),rate varchar(5),id int(4) auto_increment primary key);
+create table books(name varchar(20),author varchar(20),subject varchar(20),nob varchar(20),price varchar(20),id int(4) auto_increment primary key);
+create table patient(name varchar(20),fname varchar(20),disease varchar(20),doctor varchar(20),uid varchar(20),id int(4) auto_increment primary key);
+create table busbooking(pname varchar(20),age int(2),gender varchar(20),doj varchar(20),seatno int(2),uid varchar(15),id int(4) auto_increment primary key);
+create table students(sname varchar(20),fname varchar(20),course varchar(10),dob varchar(20),uid varchar(20),id int(40) auto_increment primary key);

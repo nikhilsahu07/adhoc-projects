@@ -1,0 +1,69 @@
+
+<html>
+    <head>
+        <style>
+            *{
+    transition: all 0.6s;
+}
+
+html {
+    height: 100%;
+}
+
+body{
+    font-family: 'Lato', sans-serif;
+    color: #888;
+    margin: 0;
+}
+
+#main{
+    display: table;
+    width: 100%;
+    height: 100vh;
+    text-align: center;
+}
+
+.fof{
+	  display: table-cell;
+	  vertical-align: middle;
+}
+
+.fof h1{
+	  font-size: 50px;
+	  display: inline-block;
+	  padding-right: 12px;
+	  animation: type .5s alternate infinite;
+}
+
+@keyframes type{
+	  from{box-shadow: inset -3px 0px 0px #888;}
+	  to{box-shadow: inset -3px 0px 0px transparent;}
+}
+a {
+  background-color: #04AA6D;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+a:hover {
+  opacity: 0.8;
+}
+            </style>
+        </head>
+    
+    <body>
+        <br><br><br><br>
+        <div id="main">
+    	<div class="fof">
+        		<h1>Error 404</h1>
+                        <h3> THIS IS AN ERROR PAGE </h3>
+                        <a href="login.html">Login</a>
+    	</div>
+</div>
+        
+    </body>
+</html>
