@@ -1,0 +1,520 @@
+=== CONDENSED PHP FILES COMPILATION ===
+
+==================== ./account.php ====================
+<?php include 'header.php'; ?>
+<section class="caption">
+    <h2>Find You Dream Cars For Hire</h2>
+    <h3>Range Rovers - Mercedes Benz - Landcruisers</h3>
+</section>
+
+<section class="search">
+    <div class="wrapper">
+        <form method="post">
+            <h3>Client Login Area</h3>
+            <table>
+                <tr><td>Email:</td><td><input type="email" name="email" required></td></tr>
+                <tr><td>Password:</td><td><input type="password" name="pass" required></td></tr>
+                <tr><td><input type="submit" name="log" value="Login"></td><td><a href="signup.php">Signup</a></td></tr>
+            </table>
+        </form>
+        <?php
+        if(isset($_POST['log'])){
+            include 'includes/config.php';
+            $uname = $_POST['email'];
+            $pass = $_POST['pass'];
+            $qy = "SELECT * FROM client WHERE email = '$uname' AND id_no = '$pass'";
+            $log = $conn->query($qy);
+            $num = $log->num_rows;
+            $row = $log->fetch_assoc();
+            if($num > 0){
+                session_start();
+                $_SESSION['email'] = $row['email'];
+                $_SESSION['pass'] = $row['id_no'];
+                echo "<script>alert('Login Successful.'); window.location = 'index.php';</script>";
+            } else{
+                echo "<script>alert('Login Failed.'); window.location = 'account.php';</script>";
+            }
+        }
+        ?>
+    </div>
+</section>
+
+==================== ./admin/add_cars.php ====================
+<?php include '../includes/config.php'; include 'menu.php'; ?>
+<div class="box">
+    <h2>Add New Vehicles</h2>
+    <form method="post" enctype="multipart/form-data">
+        <p><label>Vehicle Name</label><input type="text" name="car_name" required /></p>
+        <p><label>Vehicle Make</label><input type="text" name="car_type" required /></p>
+        <p><label>Hire Price</label><input type="text" name="hire_cost" required /></p>
+        <p><label>Vehicle Image</label><input type="file" name="image" required /></p>
+        <p><label>Vehicle Capacity</label><input type="text" name="capacity" required /></p>
+        <input type="submit" value="submit" name="send" />
+    </form>
+    <?php
+    if(isset($_POST['send'])){
+        $target_path = "../cars/" . basename($_FILES['image']['name']);
+        if(move_uploaded_file($_FILES['image']['tmp_name'], $target_path)){
+            $image = basename($_FILES['image']['name']);
+            $car_name = $_POST['car_name'];
+            $car_type = $_POST['car_type'];
+            $hire_cost = $_POST['hire_cost'];
+            $capacity = $_POST['capacity'];
+            $qr = "INSERT INTO cars (image, car_name,car_type,hire_cost,capacity,status) VALUES ('$image','$car_name','$car_type','$hire_cost','$capacity','Available')";
+            $res = $conn->query($qr);
+            if($res === TRUE){
+                echo "<script>alert('Vehicle Successfully Added'); window.location = 'add_vehicles.php';</script>";
+            }
+        }
+    }
+    ?>
+</div>
+
+==================== ./admin/add_vehicles.php ====================
+<?php include 'menu.php'; ?>
+<div class="box">
+    <h2>Our Vehicles</h2>
+    <table>
+        <tr><th>Vehicle Make</th><th>Car Type</th><th>Hire Price</th><th>Control</th></tr>
+        <?php
+        include '../includes/config.php';
+        $select = "SELECT * FROM cars WHERE status = 'Available'";
+        $result = $conn->query($select);
+        while($row = $result->fetch_assoc()){
+        ?>
+        <tr>
+            <td><?php echo $row['car_type'] ?></td>
+            <td><?php echo $row['car_name'] ?></td>
+            <td><?php echo $row['hire_cost'] ?></td>
+            <td><a href="javascript:sureToApprove(<?php echo $row['car_id'];?>)">Delete</a></td>
+        </tr>
+        <?php } ?>
+    </table>
+</div>
+
+==================== ./admin/approve.php ====================
+<?php
+include '../includes/config.php';
+$id = $_REQUEST['id'];
+$query = "UPDATE client SET status = 'Approved' WHERE client_id = '$id'";
+$result = $conn->query($query);
+if($result === TRUE){
+    echo 'Request has Successfully been Approved';
+    echo '<meta content="4; client_requests.php" http-equiv="refresh" />';
+}
+?>
+
+==================== ./admin/client_requests.php ====================
+<?php include 'menu.php'; ?>
+<div class="box">
+    <h2>Client Requests</h2>
+    <table>
+        <tr><th>Client Name</th><th>Phone</th><th>Car Booked</th><th>Mpesa ID</th><th>Status</th><th>Control</th></tr>
+        <?php
+        include '../includes/config.php';
+        $select = "SELECT client.client_id,client.fname,client.phone,cars.car_name,cars.hire_cost,client.status FROM client JOIN cars ON client.car_id=cars.car_id";
+        $result = $conn->query($select);
+        while($row = $result->fetch_assoc()){
+        ?>
+        <tr>
+            <td><?php echo $row['fname'] ?></td>
+            <td><?php echo $row['phone'] ?></td>
+            <td><?php echo $row['car_name'] ?></td>
+            <td><?php echo $row['hire_cost'] ?></td>
+            <td><?php echo $row['status'] ?></td>
+            <td><a href="javascript:sureToApprove(<?php echo $row['client_id'];?>)">Approve</a></td>
+        </tr>
+        <?php } ?>
+    </table>
+</div>
+
+==================== ./admin/delete.php ====================
+<?php
+include '../includes/config.php';
+$id = $_REQUEST['id'];
+$query = "DELETE FROM client WHERE client_id = '$id'";
+$result = $conn->query($query);
+if($result === TRUE){
+    echo 'Request has Successfully been Deleted';
+    echo '<meta content="4; client_requests.php" http-equiv="refresh" />';
+}
+?>
+
+==================== ./admin/delete_car.php ====================
+<?php
+include '../includes/config.php';
+$id = $_REQUEST['id'];
+$query = "DELETE FROM cars WHERE car_id = '$id'";
+$result = $conn->query($query);
+if($result === TRUE){
+    echo "<script>alert('Car Successfully Deleted'); window.location = 'add_vehicles.php';</script>";
+}
+?>
+
+==================== ./admin/delete_msg.php ====================
+<?php
+include '../includes/config.php';
+$id = $_REQUEST['id'];
+$query = "DELETE FROM message WHERE msg_id = '$id'";
+$result = $conn->query($query);
+if($result === TRUE){
+    echo "<script>alert('Message Successfully Deleted'); window.location = 'index.php';</script>";
+}
+?>
+
+==================== ./admin/index.php ====================
+<?php include 'menu.php'; ?>
+<div class="box">
+    <h2>Client Messages</h2>
+    <table>
+        <tr><th>Message Content</th><th>Time Send</th><th>Status</th><th>Control</th></tr>
+        <?php
+        include '../includes/config.php';
+        $select = "SELECT * FROM message";
+        $result = $conn->query($select);
+        while($row = $result->fetch_assoc()){
+        ?>
+        <tr>
+            <td><?php echo $row['message'] ?></td>
+            <td><?php echo $row['time'] ?></td>
+            <td><?php echo $row['status'] ?></td>
+            <td><a href="javascript:sureToApprove(<?php echo $row['msg_id'];?>)">Delete</a></td>
+        </tr>
+        <?php } ?>
+    </table>
+</div>
+
+==================== ./admin/logout.php ====================
+<?php
+session_start();
+session_destroy();
+echo "<script>alert('User Logged Out'); window.location = '../index.php';</script>";
+?>
+
+==================== ./admin/menu.php ====================
+<?php
+error_reporting("E-NOTICE");
+session_start();
+if(!$_SESSION['uname'] && (!$_SESSION['pass'])){
+    header("location: ../login.php");
+}
+?>
+<div id="top">
+    <h1>Car Rental System</h1>
+    <div id="top-navigation">
+        Welcome <strong>Administrator</strong> | <a href="logout.php">Log out</a>
+    </div>
+</div>
+<div id="navigation">
+    <ul>
+        <li><a href="index.php">Dashboard</a></li>
+        <li><a href="add_vehicles.php">Vehicle Management</a></li>
+        <li><a href="client_requests.php">Hire Requests</a></li>
+        <li><a href="index.php">Messages</a></li>
+    </ul>
+</div>
+
+==================== ./book_car.php ====================
+<?php include 'header.php'; ?>
+<section class="listings">
+    <div class="wrapper">
+        <?php
+        include 'includes/config.php';
+        $sel = "SELECT * FROM cars WHERE car_id = '$_GET[id]'";
+        $rs = $conn->query($sel);
+        $rws = $rs->fetch_assoc();
+        ?>
+        <img src="cars/<?php echo $rws['image'];?>" width="300" height="200">
+        <span><?php echo 'Rs.'.$rws['hire_cost'];?></span>
+        <h1><?php echo 'Car Make>'.$rws['car_type'];?></h1>
+        <h2>Car Name: <?php echo $rws['car_name'];?></h2>
+        <h3>Proceed to Hire <?php echo $rws['car_name'];?></h3>
+        
+        <?php if(!$_SESSION['email'] && (!$_SESSION['pass'])){ ?>
+        <form method="post">
+            <table>
+                <tr><td>Full Name:</td><td><input type="text" name="fname" required></td></tr>
+                <tr><td>Phone:</td><td><input type="text" name="phone" required></td></tr>
+                <tr><td>Email:</td><td><input type="email" name="email" required></td></tr>
+                <tr><td>ID Number:</td><td><input type="text" name="id_no" required></td></tr>
+                <tr><td>Gender:</td><td><select name="gender"><option>Male</option><option>Female</option></select></td></tr>
+                <tr><td>Location:</td><td><input type="text" name="location" required></td></tr>
+                <tr><td colspan="2"><input type="submit" name="save" value="Submit Details"></td></tr>
+            </table>
+        </form>
+        <?php } else { ?>
+            <a href="pay.php">Click to Book</a>
+        <?php } ?>
+        
+        <?php
+        if(isset($_POST['save'])){
+            include 'includes/config.php';
+            $fname = $_POST['fname'];
+            $id_no = $_POST['id_no'];
+            $gender = $_POST['gender'];
+            $email = $_POST['email'];
+            $phone = $_POST['phone'];
+            $location = $_POST['location'];
+            $qry = "INSERT INTO client (fname,id_no,gender,email,phone,location,car_id,status) VALUES('$fname','$id_no','$gender','$email','$phone','$location','$_GET[id]','Pending')";
+            $result = $conn->query($qry);
+            if($result == TRUE){
+                echo "<script>alert('Successfully Registered. Proceed to pay'); window.location = 'pay.php';</script>";
+            } else{
+                echo "<script>alert('Registration Failed.'); window.location = 'book_car.php';</script>";
+            }
+        }
+        ?>
+    </div>
+</section>
+
+==================== ./contact.php ====================
+<?php include 'header.php'; ?>
+<h3>Contact Us</h3>
+<div class="container">
+    <form>
+        <label>First Name</label><input type="text" name="firstname" placeholder="Your name..">
+        <label>Last Name</label><input type="text" name="lastname" placeholder="Your last name..">
+        <label>Country</label>
+        <select name="country">
+            <option value="australia">Australia</option>
+            <option value="canada">Canada</option>
+            <option value="usa">USA</option>
+        </select>
+        <label>Subject</label><textarea name="subject" placeholder="Write something.."></textarea>
+        <input type="submit" value="Submit">
+    </form>
+</div>
+
+==================== ./header.php ====================
+<?php
+session_start();
+error_reporting("E-NOTICE");
+?>
+<header>
+    <div class="wrapper">
+        <h1 class="logo">Simple Car Rental System</h1>
+        <nav>
+            <?php if(!$_SESSION['email'] && (!$_SESSION['pass'])){ ?>
+            <ul>
+                <li><a href="index.php">Home</a></li>
+                <li><a href="index.php">Rent Cars</a></li>
+                <li><a href="contact.php">Contact</a></li>
+                <li><a href="account.php">Client Login</a></li>
+                <li><a href="login.php">Admin Login</a></li>
+            </ul>
+            <?php } else{ ?>
+            <ul>
+                <li><a href="index.php">Home</a></li>
+                <li><a href="status.php">View Status</a></li>
+                <li><a href="message_admin.php">Message Admin</a></li>
+                <li><a href="admin/logout.php">Logout</a></li>
+            </ul>
+            <?php } ?>
+        </nav>
+    </div>
+</header>
+
+==================== ./includes/config.php ====================
+<?php
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db = "cars";
+$conn = new mysqli($host, $user, $pass, $db);
+if($conn->connect_error){
+    echo "Failed:" . $conn->connect_error;
+}
+?>
+
+==================== ./index.php ====================
+<?php include 'header.php'; ?>
+<section class="caption">
+    <h2>Find Your Dream Cars For Rent!</h2>
+    <h3>Mercedes Benz - Toyota - Range Rovers</h3>
+</section>
+
+<section class="listings">
+    <div class="wrapper">
+        <ul class="properties_list">
+            <?php
+            include 'includes/config.php';
+            $sel = "SELECT * FROM cars WHERE status = 'Available'";
+            $rs = $conn->query($sel);
+            while($rws = $rs->fetch_assoc()){
+            ?>
+            <li>
+                <a href="book_car.php?id=<?php echo $rws['car_id'] ?>">
+                    <img src="cars/<?php echo $rws['image'];?>" width="300" height="200">
+                </a>
+                <span><?php echo 'Rs.'.$rws['hire_cost'];?></span>
+                <div>
+                    <h1><a href="book_car.php?id=<?php echo $rws['car_id'] ?>"><?php echo 'Car Make>'.$rws['car_type'];?></a></h1>
+                    <h2>Car Name: <?php echo $rws['car_name'];?></h2>
+                </div>
+            </li>
+            <?php } ?>
+        </ul>
+    </div>
+</section>
+
+==================== ./login.php ====================
+<?php include 'header.php'; ?>
+<section class="search">
+    <div class="wrapper">
+        <form method="post">
+            <h3>Admin Login Area</h3>
+            <table>
+                <tr><td>Username:</td><td><input type="text" name="uname" required></td></tr>
+                <tr><td>Password:</td><td><input type="password" name="pass" required></td></tr>
+                <tr><td colspan="2"><input type="submit" name="login" value="Login"></td></tr>
+            </table>
+        </form>
+        <?php
+        if(isset($_POST['login'])){
+            include 'includes/config.php';
+            $uname = $_POST['uname'];
+            $pass = $_POST['pass'];
+            $query = "SELECT * FROM admin WHERE uname = '$uname' AND pass = '$pass'";
+            $rs = $conn->query($query);
+            $num = $rs->num_rows;
+            $rows = $rs->fetch_assoc();
+            if($num > 0){
+                session_start();
+                $_SESSION['uname'] = $rows['uname'];
+                $_SESSION['pass'] = $rows['pass'];
+                echo "<script>alert('Login Successful'); window.location = 'admin/index.php';</script>";
+            } else{
+                echo "<script>alert('Login Failed'); window.location = 'login.php';</script>";
+            }
+        }
+        ?>
+    </div>
+</section>
+
+==================== ./message_admin.php ====================
+<?php include 'header.php'; ?>
+<section class="listings">
+    <div class="wrapper">
+        <h2>Message Admin Here</h2>
+        <form method="post">
+            <table>
+                <tr><td>Enter Your Message:</td></tr>
+                <tr><td><textarea name="message" placeholder="Enter Message Here"></textarea></td></tr>
+                <tr><td><input type="submit" name="send" value="Send Message"></td></tr>
+            </table>
+        </form>
+        <?php
+        if(isset($_POST['send'])){
+            include 'includes/config.php';
+            $message = $_POST['message'];
+            $qry = "INSERT INTO message (message,client_id,time,status) VALUES('$message','$_SESSION[email]',NOW(),'Unread')";
+            $result = $conn->query($qry);
+            if($result == TRUE){
+                echo "<script>alert('Message Successfully Send'); window.location = 'success.php';</script>";
+            } else{
+                echo "<script>alert('Message Not Send'); window.location = 'message_admin.php';</script>";
+            }
+        }
+        ?>
+    </div>
+</section>
+
+==================== ./pay.php ====================
+<?php include 'header.php'; ?>
+<section class="listings">
+    <div class="wrapper">
+        <h3>Make Payments Here</h3>
+        <h5>Paybill Number: 00000</h5>
+        <h6>Business Number: ID Number Registered with.</h6>
+        <form method="post">
+            <table>
+                <tr><td>MPESA Transaction ID:</td><td><input type="text" name="mpesa" required></td></tr>
+                <tr><td>National ID Number:</td><td><input type="text" name="id_no" required></td></tr>
+                <tr><td colspan="2"><input type="submit" name="pay" value="Submit Details"></td></tr>
+            </table>
+        </form>
+        <?php
+        if(isset($_POST['pay'])){
+            include 'includes/config.php';
+            $mpesa = $_POST['mpesa'];
+            $id_no = $_POST['id_no'];
+            $qry = "UPDATE client SET mpesa = '$mpesa' WHERE id_no = '$id_no'";
+            $result = $conn->query($qry);
+            if($result == TRUE){
+                echo "<script>alert('Payment Successfully Done'); window.location = 'wait.php';</script>";
+            } else{
+                echo "<script>alert('Registration Failed'); window.location = 'pay.php';</script>";
+            }
+        }
+        ?>
+    </div>
+</section>
+
+==================== ./signup.php ====================
+<?php include 'header.php'; ?>
+<section class="listings">
+    <div class="wrapper">
+        <h3>Signup Here</h3>
+        <form method="post">
+            <table>
+                <tr><td>Full Name:</td><td><input type="text" name="fname" required></td></tr>
+                <tr><td>Phone:</td><td><input type="text" name="phone" required></td></tr>
+                <tr><td>Email:</td><td><input type="email" name="email" required></td></tr>
+                <tr><td>ID Number:</td><td><input type="text" name="id_no" required></td></tr>
+                <tr><td>Gender:</td><td><select name="gender"><option>Male</option><option>Female</option></select></td></tr>
+                <tr><td>Location:</td><td><input type="text" name="location" required></td></tr>
+                <tr><td colspan="2"><input type="submit" name="save" value="Submit Details"></td></tr>
+            </table>
+        </form>
+        <?php
+        if(isset($_POST['save'])){
+            include 'includes/config.php';
+            $fname = $_POST['fname'];
+            $id_no = $_POST['id_no'];
+            $gender = $_POST['gender'];
+            $email = $_POST['email'];
+            $phone = $_POST['phone'];
+            $location = $_POST['location'];
+            $qry = "INSERT INTO client (fname,id_no,gender,email,phone,location,status) VALUES('$fname','$id_no','$gender','$email','$phone','$location','Available')";
+            $result = $conn->query($qry);
+            if($result == TRUE){
+                echo "<script>alert('Successfully Registered'); window.location = 'account.php';</script>";
+            } else{
+                echo "<script>alert('Registration Failed'); window.location = 'signup.php';</script>";
+            }
+        }
+        ?>
+    </div>
+</section>
+
+==================== ./status.php ====================
+<?php include 'header.php'; ?>
+<section class="listings">
+    <div class="wrapper">
+        <h2>Your Booking Status</h2>
+        <?php
+        include 'includes/config.php';
+        $sel = "SELECT * FROM client WHERE email = '$_SESSION[email]'";
+        $rs = $conn->query($sel);
+        $rws = $rs->fetch_assoc();
+        ?>
+        <h2>Booking Status: <?php echo $rws['status'];?></h2>
+    </div>
+</section>
+
+==================== ./success.php ====================
+<?php include 'header.php'; ?>
+<section class="listings">
+    <div class="wrapper">
+        <h2>Thank you for contacting us. We will give you a call shortly.</h2>
+    </div>
+</section>
+
+==================== ./wait.php ====================
+<?php include 'header.php'; ?>
+<section class="listings">
+    <div class="wrapper">
+        <h2>Thank you for sending a request to our Team. We will get back to you once we verify your payment.<br>
+        You can login to view the processing status using your email and National ID Number as password.</h2>
+    </div>
+</section>
